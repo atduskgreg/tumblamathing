@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+  <head>
+    <title>Tumblmathing</title>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js"></script>
+  <script type="text/javascript" src="../grouter/grouter.js"></script>
+  </head>
+  <script type="text/javascript">
+    
+    Route("/about/:blog", function(params){
+      Tmbl.rblgs(params['blog']);  
+    })
+        
+    $(function() {
+      Router.route();
+    })
+    
+    GResult = function(resultData){
+      console.log(resultData)
+      this.title = resultData.title;
+      this.url = resultData.unescapedUrl;
+      this.domain = resultData.visibleUrl;
+    }
+    
+    Tmbl = {
+      rblgs : function(subdomain){
+        Tmbl.ggle.reblogQuery(subdomain, function(data){
+          $("#tumblr-title").html(subdomain);
+          for(x = 0; x < data.length; x++){
+            html = "<li>";
+            html += '<h4>' + data[x].title + '</h4>';
+            html += '<a href="' + data[x].url + '>'+ data[x].domain +'</a>'
+            console.log(html);
+            $("#reblogged-by").append(html);
+          }
+          return false;
+        })
+      },
+      
+      ggle : {
+        processSearchResults : function(data){
+          var results = [];
+          for (i = 0; i < data.responseData.results.length; i++){
+            results.push(new GResult(data.responseData.results[i]));          
+          }
+          return results;
+        },
+        
+        reblogQuery : function(subdomain, callback){
+          Tmbl.ggle.queryGoogle(Tmbl.ggle.composeReblogQuery(subdomain), function(data){
+            callback(Tmbl.ggle.processSearchResults(data));
+          });
+        },
+        
+        composeReblogQuery : function(subdomain){
+          return "site%3Atumblr.com+-site%3A"+subdomain+".tumblr.com+"+subdomain;
+        },
+        
+        queryGoogle : function(q, callback){
+          var rootUrl = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=";
+          $.getJSON(rootUrl + q + "&callback=?",function(data){
+            callback(data);
+            return false;
+          });
+          return false;
+        }
+      }
+    }
+    
+  </script>
+  <body>
+    <div id="header">
+      <h1>Tumblmathing</h1>
+    </div>
+    <div id="body">
+      <h2 id="tumblr-title"></h2>
+      <h3>Reblogs</h3>
+      <ul id="reblogged-by"></ul>
+    </div>
+  </body>
+</html>
