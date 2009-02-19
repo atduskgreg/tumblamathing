@@ -4,6 +4,8 @@
     <title>Tumblmathing</title>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js"></script>
   <script type="text/javascript" src="../grouter/grouter.js"></script>
+
+  <script type="text/javascript" src="../sjt/jquery.sjt.js"></script>
   </head>
   <script type="text/javascript">
     
@@ -15,6 +17,17 @@
       Router.route();
     })
     
+    Templates = {
+      reblog : (<r><![CDATA[
+        <% for(x = 0; x < data.length; x++){ %>
+          <li>
+            <h4><%= data[x].title  %></h4>
+            <a href="<%= data[x].url %>"><%= data[x].domain %></a>
+          </li>
+         <% } %>
+      ]]></r>).toString()
+    }
+      
     GResult = function(resultData){
       console.log(resultData)
       this.title = resultData.title;
@@ -26,13 +39,9 @@
       rblgs : function(subdomain){
         Tmbl.ggle.reblogQuery(subdomain, function(data){
           $("#tumblr-title").html(subdomain);
-          for(x = 0; x < data.length; x++){
-            html = "<li>";
-            html += '<h4>' + data[x].title + '</h4>';
-            html += '<a href="' + data[x].url + '>'+ data[x].domain +'</a>'
-            console.log(html);
-            $("#reblogged-by").append(html);
-          }
+          this.data = data;
+          $("#reblogged-by").append($.sjt.render(Templates.reblog, data));
+          
           return false;
         })
       },
