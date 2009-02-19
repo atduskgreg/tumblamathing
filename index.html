@@ -37,25 +37,21 @@
     })
     
     Templates = {
-      search : (<r><![CDATA[
-        <form id="search" method="get">
-          <input name="q" id="q" value="" />
-          <label>.tumblr.com</label>
-        </form>
-        
-      ]]></r>).toString(),
-      reblog : (<r><![CDATA[
-        <h2 id="tumblr-title"><%= data.tumblog %></h2>
-        <h3>Reblogs</h3>
-        <ul id="reblogged-by">
-        <% for(x = 0; x < data.length; x++){ %>
-          <li>
-            <h4><%= data[x].title  %></h4>
-            <a href="<%= data[x].url %>"><%= data[x].domain %></a>
-          </li>
-         <% } %>
-         </ul>
-      ]]></r>).toString()
+      search :'<form id="search" method="get">\
+              <input name="q" id="q" value="" />\
+              <label>.tumblr.com</label>\
+              </form>',
+      reblog : '<h2 id="tumblr-title">\
+                <%= data.tumblog %></h2>\
+                <h3>Reblogs</h3>\
+                <ul id="reblogged-by">\
+                <% for(x = 0; x < data.length; x++){ %>\
+                  <li>\
+                    <h4><%= data[x].title  %></h4>\
+                    <a href="<%= data[x].url %>"><%= data[x].url %></a>\
+                  </li>\
+                <% } %>\
+                </ul>'
     }
       
     GResult = function(resultData){
