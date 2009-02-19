@@ -17,11 +17,23 @@
     })
         
     $(function() {
+      // hack to reapply events after we rip away 
+      function applyEvents(){
+        $("#search").submit(function(){
+          Router.goTo("/about/" + $("#q").attr("value"));
+          applyEvents();
+          return false;
+        });
+        
+        $("h1 a").click(function(){
+          Router.goTo("/search");
+          applyEvents();
+          return false;
+        });
+      }
       Router.route();
-      $("#search").submit(function(){
-        Router.goTo("/about/" + $("#q").attr("value"));
-        return false;
-      })
+      applyEvents();
+      
     })
     
     Templates = {
@@ -47,7 +59,6 @@
     }
       
     GResult = function(resultData){
-      console.log(resultData)
       this.title = resultData.title;
       this.url = resultData.unescapedUrl;
       this.domain = resultData.visibleUrl;
@@ -65,28 +76,44 @@
       },
       
       ggle : {
-        processSearchResults : function(data){
-          var results = [];
+        results : [],
+        expectedPages : 0,
+        maxPages : 25,
+        processSearchResultsPage : function(data){
           for (i = 0; i < data.responseData.results.length; i++){
-            results.push(new GResult(data.responseData.results[i]));          
+            Tmbl.ggle.results.push(new GResult(data.responseData.results[i]));          
           }
-          return results;
         },
         
         reblogQuery : function(subdomain, callback){
-          Tmbl.ggle.queryGoogle(Tmbl.ggle.composeReblogQuery(subdomain), function(data){
-            callback(Tmbl.ggle.processSearchResults(data));
-          });
+          var q = Tmbl.ggle.composeReblogQuery(subdomain);
+          Tmbl.ggle.queryGoogle(q, 0, callback);
+          
+          // Tmbl.ggle.queryGoogle(Tmbl.ggle.composeReblogQuery(subdomain), function(data){
+          //             callback(Tmbl.ggle.processSearchResults(data));
+          //           });
         },
         
         composeReblogQuery : function(subdomain){
           return "site%3Atumblr.com+-site%3A"+subdomain+".tumblr.com+"+subdomain;
         },
         
-        queryGoogle : function(q, callback){
-          var rootUrl = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&q=";
+        queryGoogle : function(q, p, callback){
+          
+          var currentPage = p
+          var rootUrl = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&start="+p+"&q=";
           $.getJSON(rootUrl + q + "&callback=?",function(data){
-            callback(data);
+            console.log(data);
+            Tmbl.ggle.expectedPages = Math.ceil(data.responseData.cursor.estimatedResultCount / 4);
+            Tmbl.ggle.processSearchResultsPage(data);
+            if((currentPage + 1 < Tmbl.ggle.expectedPages) && (currentPage + 1 < Tmbl.ggle.maxPages)){
+              Tmbl.ggle.queryGoogle(q, (currentPage + 1), callback);
+            }
+            else{
+              callback(Tmbl.ggle.results);
+              Tmbl.ggle.results = [];
+              Tmbl.ggle.expectedPages = 0;
+            }
             return false;
           });
           return false;
@@ -97,7 +124,7 @@
   </script>
   <body>
     <div id="header">
-      <h1>Tumblmathing</h1>
+      <h1><a href="">Tumblmathing</a></h1>
     </div>
     <div id="body">
     </div>
