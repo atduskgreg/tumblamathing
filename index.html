@@ -4,7 +4,7 @@
     <title>Tumblmathing</title>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js"></script>
   <script type="text/javascript" src="../grouter/grouter.js"></script>
-  <script type="text/javascript" src="../sjt/jquery.sjt.js"></script>
+  <script type="text/javascript" src="../srender/jquery.srender.js"></script>
   <link rel="stylesheet" type="text/css" href="http://assets.tumblr.com/stylesheets/compressed/global.css?99"/>
   <link rel="stylesheet" type="text/css" href="http://assets.tumblr.com/stylesheets/compressed/dashboard.css?99"/>
   <style>
@@ -71,7 +71,7 @@
     });
     
     Route("/search", function(){
-      $.sjt.render(Templates.search, {}, $("#content"));
+      $.srender(Templates.search, {}, $("#content"));
     })
         
     $(function() {
@@ -127,7 +127,7 @@
         Tmbl.ggle.reblogQuery(tumblog, function(data){
           data.tumblog = tumblog;
           this.data = data;
-          $.sjt.render(Templates.reblog, data, $("#content"));
+          $.srender(Templates.reblog, data, $("#content"));
 
           return false;
         })
