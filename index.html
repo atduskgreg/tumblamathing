@@ -191,14 +191,18 @@
           }
         },
         
-        reblogQuery : function(subdomain, callback){
+        reblogQuery : function(tumblr, callback){
           $("#content").html('<div id="waiting">looking up rebloggings...</div>');
-          var q = Tmbl.ggle.composeReblogQuery(subdomain);
+          var q = Tmbl.ggle.composeReblogQuery(tumblr);
+          console.log(q);
           Tmbl.ggle.queryGoogle(q, 0, callback);
         },
         
-        composeReblogQuery : function(subdomain){
-          return "site%3Atumblr.com+-site%3A"+subdomain+".tumblr.com+"+subdomain;
+        composeReblogQuery : function(tumblr){
+          if(tumblr.match(/\./))
+            return "site%3Atumblr.com+-site%3A"+tumblr+" "+tumblr;
+          else
+            return "site%3Atumblr.com+-site%3A"+tumblr+".tumblr.com+"+tumblr;
         },
         
         queryGoogle : function(q, p, callback){
