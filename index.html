@@ -8,6 +8,47 @@
   <link rel="stylesheet" type="text/css" href="http://assets.tumblr.com/stylesheets/compressed/global.css?99"/>
   <link rel="stylesheet" type="text/css" href="http://assets.tumblr.com/stylesheets/compressed/dashboard.css?99"/>
   <style>
+
+  #header {
+    margin-top: 10px;
+    height: 90px;
+  }
+  
+  #credit {
+    color:#AAAAAA;
+    float:left;
+    font-size:9px;
+    font-style:italic;
+    margin-left:15px;
+  }
+  
+  #credit a {
+    color: #fff;
+  }
+  
+  #header img {
+    width: 219px;
+    float:left;
+    margin-right: 10px;
+  }
+  
+  #slogan {
+    color: #fff;
+    background-color: #2C4762;
+    padding: 5px;
+    float:left;
+    margin-top: 35px;
+  }
+  
+  #waiting {
+    color: #aaa;
+    font-style: italic;
+  }
+  
+  h2{
+    margin-top: 5px;
+  }
+  
     #container {
       width: 700px;
     }
@@ -16,29 +57,25 @@
       margin: 0;
     }
     
-    #header h1 a {
-      color: #fff;
-      font-size: 50px;
-    }
-    
     h2 {
       color: #ddd;
-      font-size:25px;
+      font-size:20px;
     }
     
-    h5 {
+    h5 a{
       background-color:#000000;
       border:1px solid #FFFFFF;
       color:red;
       float:right;
-      font-size:20px;
-      margin:-50px 0 0;
+      font-size:12px;
+      margin:-36px 0 0;
       padding:2px;
       text-transform:uppercase;
     }
+  
     
     #tumblr-title, #reblogged{
-      font-size: 35px;
+      font-size: 20px;
       color: orange;
       margin: 0;
     }
@@ -56,9 +93,10 @@
       color: #eee;
     }
     
-    input {
+    input#q {
       font-size: 25px;
     }
+
 
   </style>
   
@@ -66,45 +104,51 @@
   
   <script type="text/javascript">
     
-    Route("/about/:blog", function(params){
-      Tmbl.rblgs(params['blog']);  
+    Route("/t/:blog", function(params){
+      Tmbl.rblgs(params['blog']);
+      return false;  
     });
     
-    Route("/search", function(){
+    Route("", function(){
       $.srender(Templates.search, {}, $("#content"));
-    })
+      return false;
+    });
         
     $(function() {
-      // hack to reapply events after we rip away 
-      function applyEvents(){
-        $("#search").submit(function(){
-          Router.goTo("/about/" + $("#q").attr("value"));
-          applyEvents();
-          return false;
-        });
-        
-        $("h1 a").click(function(){
-          Router.goTo("/search");
-          applyEvents();
-          return false;
-        });
+      $("#header a").click(function(){
+        Router.goTo("#");
+        Page.applyEvents();
+        return false;
+      });
+      
+      // hack to reapply events after we rip away search
+      Page = {
+        applyEvents : function(){
+          $("#search").submit(function(){
+            Router.goTo("/t/" + $("#q").attr("value"));
+            Page.applyEvents();
+            return false;
+          });
+        }
       }
+
       Router.route();
-      applyEvents();
+      Page.applyEvents();
       
     })
     
     Templates = {
       search :'<form id="search" method="get">\
+                <input type="submit" value="Who reblogged" />\
                 <input name="q" id="q" value="" />\
-                <label>.tumblr.com</label>\
+                <label>.tumblr.com</label>?\
               </form>',
       reblog : '<div id="left_column">\
                   <h2 >\
                   <span id="tumblr-title"><%= data.tumblog %></span>\
                    was <span id="reblogged">reblogged</span> <%= data.length %> Times</h2>\
                    <% if(Tmbl.ggle.reachedMax) { %>\
-                     <h5 id="reached-max">max!</h5>\
+                     <h5 id="reached-max"><a href="<%= Tmbl.ggle.googleUrl %>" title="See more on google">max!</a></h5>\
                    <% } %>\
                   <ol id="posts">\
                   <% for(x = 0; x < data.length; x++){ %>\
@@ -113,7 +157,10 @@
                       &mdash;<%= data[x].domain %>\
                       </li>\
                 <% } %>\
-                </ol></div><div class="clear"/>'
+                </ol></div><div class="clear"/>',
+      waiting: '<ol id="posts">\
+                  <li class="post"><img src="http://assets.tumblr.com/images/loading.gif" /></li>\
+                </ol>'
     }
       
     GResult = function(resultData){
@@ -127,6 +174,7 @@
         Tmbl.ggle.reblogQuery(tumblog, function(data){
           data.tumblog = tumblog;
           this.data = data;
+          $("#waiting").remove();
           $.srender(Templates.reblog, data, $("#content"));
 
           return false;
@@ -136,14 +184,15 @@
       ggle : {
         results : [],
         expectedPages : 0,
-        maxPages : 100,
         processSearchResultsPage : function(data){
+          Tmbl.ggle.googleUrl = data.responseData.cursor.moreResultsUrl;
           for (i = 0; i < data.responseData.results.length; i++){
             Tmbl.ggle.results.push(new GResult(data.responseData.results[i]));          
           }
         },
         
         reblogQuery : function(subdomain, callback){
+          $("#content").html('<div id="waiting">looking up rebloggings...</div>');
           var q = Tmbl.ggle.composeReblogQuery(subdomain);
           Tmbl.ggle.queryGoogle(q, 0, callback);
         },
@@ -153,8 +202,7 @@
         },
         
         queryGoogle : function(q, p, callback){
-          
-          var currentPage = p
+          var currentPage = p;
           var rootUrl = "http://ajax.googleapis.com/ajax/services/search/web?v=1.0&start="+p+"&q=";
           $.getJSON(rootUrl + q + "&callback=?",function(data){
             if(data.responseData){
@@ -164,9 +212,8 @@
               Tmbl.ggle.reachedMax = true;
               callback(Tmbl.ggle.results);
               Tmbl.ggle.reachedMax = false;
-
+              
               // reset
-
               Tmbl.ggle.results = [];
               Tmbl.ggle.expectedPages = 0;
               return false;
@@ -193,10 +240,12 @@
     <div id="container">
       
       <div id="header">
-        <h1 class="dashboard_header"><a href="/#/search">ReblogRadar</a></h1>
+        <a href="/"><img src="rtumblr.png" /></a><div id="slogan">find your rebloggers</div><br style="clear:both"/>
+        <div id="credit">built by <a href="http://idfdz.tumblr.com">Greg Borenstein</a> in 2009 using Javascript.</div>
+        <br style="clear:both"/>
       </div>
-      <div id="content">
-      </div>
+      <div id="content"></div>
+      
     </div>
 
   </body>
