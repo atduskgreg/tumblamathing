@@ -19,7 +19,7 @@
     float:left;
     font-size:9px;
     font-style:italic;
-    margin-left:15px;
+    margin-left:20px;
   }
   
   #credit a {
@@ -120,6 +120,11 @@
         Page.applyEvents();
         return false;
       });
+      
+      $("#credit a").click(function(){
+        window.location = "http://idfdz.tumblr.com";
+        return false;
+      })
       
       // hack to reapply events after we rip away search
       Page = {
@@ -245,7 +250,7 @@
       
       <div id="header">
         <a href="/"><img src="rtumblr.png" /></a><div id="slogan">find your rebloggers</div><br style="clear:both"/>
-        <div id="credit">built by <a href="http://idfdz.tumblr.com">Greg Borenstein</a> in 2009 using Javascript.</div>
+        <div id="credit">handmade by <a href="http://idfdz.tumblr.com">Greg Borenstein</a> in 2009 with js.</div>
         <br style="clear:both"/>
       </div>
       <div id="content"></div>
